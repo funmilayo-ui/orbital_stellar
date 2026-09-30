@@ -90,8 +90,15 @@ export function mapTypeDef(type: xdr.ScSpecTypeDef): TypeSpec {
       const map = type.map();
       return { type: "map", key: mapTypeDef(map.keyType()), value: mapTypeDef(map.valueType()) };
     }
-    case "scSpecTypeTuple":
-      return { type: "tuple", elements: type.tuple().valueTypes().map(mapTypeDef) };
+    case "scSpecTypeTuple": {
+      const elements = type.tuple().valueTypes().map(mapTypeDef);
+      // `Result<(), E>` encodes its unit Ok arm as a zero-element tuple. That
+      // is void, and a canonical tuple needs at least 2 elements, so leaving it
+      // as a tuple produced specs that `validateSpec` (and so `abi-registry
+      // verify`) rejected - e.g. the Soroswap Factory's `initialize`.
+      if (elements.length === 0) return "void";
+      return { type: "tuple", elements };
+    }
     case "scSpecTypeBytesN":
       return { type: "bytes_n", size: type.bytesN().n() };
     case "scSpecTypeUdt":

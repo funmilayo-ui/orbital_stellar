@@ -26,6 +26,11 @@ describe("mapTypeDef - composite and edge-case types not covered by the real WAS
     expect(mapTypeDef(type)).toEqual({ type: "tuple", elements: ["u32", "bool"] });
   });
 
+  it("maps the zero-element tuple (unit, as in Result<(), E>) to void", () => {
+    const type = xdr.ScSpecTypeDef.scSpecTypeTuple(new xdr.ScSpecTypeTuple({ valueTypes: [] }));
+    expect(mapTypeDef(type)).toBe("void");
+  });
+
   it("maps muxed address to address", () => {
     expect(mapTypeDef(xdr.ScSpecTypeDef.scSpecTypeMuxedAddress())).toBe("address");
   });
